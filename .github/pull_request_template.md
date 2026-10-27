@@ -19,7 +19,7 @@
 - [ ] `id` 没有改过名（一经发布不可复用/不可改名）
 - [ ] `version` 严格递增，是严格 semver（无 `v` 前缀、无前导零）
 - [ ] `sha256` 是对**最终上传的字节**算的，已转小写，64 位
-- [ ] `download` 是 `https://` 且指向**固定 tag 的 Release 直链**（不是 `main` 的 raw）
+- [ ] `download` 是 `https://` 且指向**固定 tag 的 Release 直链**（不是 `main` 的 raw / jsDelivr）
 - [ ] `permissions` 是最小集，且与包内清单完全一致
 - [ ] 在真机上实际安装过，能装、能授权、命令能跑
 - [ ] `index.json` 是无 BOM 的 UTF-8，末尾有换行

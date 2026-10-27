@@ -35,7 +35,8 @@ review 标准比一般文档仓库严：一条坏条目等于所有用户的市�
 5. **`sha256` 必须与 `download` 的真实字节一致。** 发布前请在干净目录重新下载一次
    并重算哈希（`Get-FileHash` 的结果要转小写）。这是唯一防篡改/防损坏的凭据。
 6. **`download` 必须指向你自己 GitHub Release 上的固定 tag。**
-   - 不要用 `main`/`master` 的 raw 地址（内容可变，哈希必然漂移）。
+   - 不要用 `main`/`master` 的 raw 地址，也不要用 `cdn.jsdelivr.net/gh/...@main`
+     这类 jsDelivr 可变引用（内容可变，哈希必然漂移）。
    - 不要用第三方网盘、短链、会过期的签名 URL。
    - 不要提交 `http://`。
 7. **包里必须能装上。** 请在真机上实际装一次：`plugin.json` 或 `package.json`

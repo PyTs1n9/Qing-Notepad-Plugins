@@ -528,6 +528,51 @@ function isPresent(value) {
 }
 
 /**
+ * 判断 `download` 是否指向**可变引用**。
+ *
+ * 同一条 `download.mutable` 警告覆盖两种形态，因为后果一样（包一重新打包
+ * sha256 就会失配）：
+ *   1. `raw.githubusercontent.com/<owner>/<repo>/<ref>/<path>` —— `<ref>` 是分支名
+ *   2. `cdn.jsdelivr.net/gh/<owner>/<repo>[@<ref>]/<path>` —— `@main` / `@master` /
+ *      `@latest`，或者干脆没写 `@<ref>`（jsDelivr 会解析成"最新版本"，同样会随新
+ *      tag 漂移）
+ * 固定 tag（`@v1.2.3`）或 commit SHA 不算可变，不会触发警告。
+ *
+ * @param {unknown} value
+ * @returns {boolean}
+ */
+function isMutableDownloadRef(value) {
+  if (typeof value !== "string") return false;
+  let parsed;
+  try {
+    parsed = new URL(value);
+  } catch {
+    return false;
+  }
+
+  const segments = parsed.pathname.split("/").filter((part) => part.length > 0);
+
+  if (parsed.hostname === "raw.githubusercontent.com") {
+    // /<owner>/<repo>/<ref>/<path...>
+    const ref = segments[2];
+    return ref === undefined || ref === "main" || ref === "master";
+  }
+
+  if (parsed.hostname === "cdn.jsdelivr.net") {
+    if (segments[0] !== "gh") return false;
+    const repoSegment = segments[2]; // `<repo>@<ref>`
+    if (repoSegment === undefined) return true;
+    const at = repoSegment.indexOf("@");
+    // 没有 @<ref>：jsDelivr 解析成最新版本，会随新 tag 漂移。
+    if (at === -1) return true;
+    const ref = repoSegment.slice(at + 1).toLowerCase();
+    return ref.length === 0 || ref === "main" || ref === "master" || ref === "latest";
+  }
+
+  return false;
+}
+
+/**
  * 计算文件 sha256（小写十六进制）。
  *
  * @param {string} filePath
@@ -874,10 +919,10 @@ function validateIndex(indexPath) {
       );
 
       report.expectSoft(
-        !/^https:\/\/raw\.githubusercontent\.com\/[^/]+\/[^/]+\/(main|master)\//.test(entry.download),
+        !isMutableDownloadRef(entry.download),
         `${at}.download`,
         "download.mutable",
-        "download 指向可变分支（main/master）：包一重新打包 sha256 就会失配，正式插件请挂在 Release 的固定 tag 上",
+        "download 指向可变引用（raw.githubusercontent.com/.../main、cdn.jsdelivr.net/gh/...@main，或未固定版本的 jsDelivr 地址）：包一重新打包 sha256 就会失配，正式插件请挂在 Release 的固定 tag 上",
       );
 
       const artifactName = basename(new URL(entry.download).pathname);
