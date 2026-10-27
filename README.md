@@ -145,8 +145,9 @@ sha256 → 装 → 授权 → 跑命令）在真机上通得了：
      `raw.githubusercontent.com/.../main` 与 `cdn.jsdelivr.net/gh/...@main` 两种形态，
      提醒维护者改包时同步改哈希。
   2. **粘滞**——推了新内容不会立刻可见，要等 purge 或 CDN TTL 才生效。
-     所以**每次合并 `index.json` 后都必须 purge jsDelivr 缓存**，
-     见 [CONTRIBUTING 的必做步骤](./CONTRIBUTING.md#三review-流程)。
+     所以**每次合并 `index.json` 后都要 purge jsDelivr 缓存**；这一步由 CI 自动做
+     （`.github/workflows/purge-jsdelivr.yml`），失败才人工补，见
+     [CONTRIBUTING 的说明](./CONTRIBUTING.md#三review-流程)。
 - 这两点合起来，正是正式插件**必须**把包挂在自己 Release 固定 tag 上的原因：
   **tag 不变、字节不变，就不存在缓存漂移**，客户端校验的 `sha256` 永远对得上。
   索引仓库只存 `index.json`，`@main` 的 jsDelivr 地址只适合自举示例。

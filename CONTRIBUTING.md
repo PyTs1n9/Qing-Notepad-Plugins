@@ -56,21 +56,34 @@ review 标准比一般文档仓库严：一条坏条目等于所有用户的市�
 2. 维护者核对：包能不能装、权限是否最小、`download` 是否固定 tag、
    描述是否说得清用途。
 3. 至少一位维护者 approve 后合并。
-4. **合并 `index.json` 后必须 purge jsDelivr 缓存**（见下面的必做步骤），
-   否则合并等于没合并。
+4. **合并 `index.json` 后由 CI 自动 purge jsDelivr 缓存**（见下一节）。CI 红了才需要
+   人工补做——不 purge 的话，合并等于没合并。
 5. 客户端自己还有一层 24 小时缓存（`INDEX_TTL_SECS`）。所以用户看到新内容的时机是
    **purge 成功之后**，再叠加客户端缓存过期或用户在插件页手动强制刷新。
    要立刻见效，就让用户强制刷新一次。
 
-### 合并后必做：purge jsDelivr 缓存
+### 合并后：purge jsDelivr 缓存（CI 自动，失败才人工介入）
 
-jsDelivr 会缓存 `index.json`。**推完不 purge 就等于没推**：
+jsDelivr 会缓存 `index.json`。**推完不 purge 就等于没推**：客户端拿到的还是旧索引。
+
+这一步由 CI 自动做（`.github/workflows/purge-jsdelivr.yml`），只在 `push: main`
+且 `index.json` **实际变更**时触发——改 README / 改校验器不会去 purge。
+
+```yaml
+# CI 的成功判据（两条都满足才算成功）：
+#   1. 返回体里 status == "finished"
+#   2. 没有 throttled: true
+# 拿不到 finished 或被限流 → job 红掉（不加 continue-on-error），最多重试 2 次。
+```
+
+**人工补救（只有 CI 红了才需要做）**：Actions 里跑一次 `purge-jsdelivr`
+（workflow_dispatch），或直接浏览器 GET：
 
 ```
 https://purge.jsdelivr.net/gh/PyTs1n9/Qing-Notepad-Plugins@main/index.json
 ```
 
-浏览器打开即可（GET），期望返回：
+期望返回：
 
 ```json
 {"status": "finished", "providers": {"CF": true, "FY": true}}
@@ -78,9 +91,9 @@ https://purge.jsdelivr.net/gh/PyTs1n9/Qing-Notepad-Plugins@main/index.json
 
 **症状极其隐蔽**：不 purge 时 `cdn.jsdelivr.net` 返回的是 **HTTP 200、内容也是合法
 JSON**，只是**旧**——旧的 `download` 地址、旧的 `version`、旧的 `sha256`。也就是说
-"市场列表能显示、点安装却报错"或"升级后版本号不变"这类问题，**先 purge 再排查**，
-别第一时间怀疑客户端。GitHub Raw 那条源没有这层 CDN 缓存，但因为部分地区不可达，
-它本来就不是可靠信号（见 README）。
+"市场列表能显示、点安装却报错"或"升级后版本号不变"这类问题，**先看 purge 有没有跑成
+再排查**，别第一时间怀疑客户端。GitHub Raw 那条源没有这层 CDN 缓存，但因为部分地区
+不可达，它本来就不是可靠信号（见 README）。
 
 如果示例包本身换了字节（不只是 `index.json` 变），包的地址同样要 purge：
 

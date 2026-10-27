@@ -1,0 +1,122 @@
+name: purge-jsdelivr
+
+# 合并 index.json 后自动 purge jsDelivr 缓存。
+#
+# 为什么必须自动：jsDelivr 会缓存 index.json，推完不 purge 等于没推——客户端拿到
+# 的仍是旧索引（旧 download / 旧 version / 旧 sha256），而响应是 HTTP 200、内容
+# 合法，排查时极难看出是缓存问题。这一步纯机械、容易忘、忘了极难查，所以交给机器。
+#
+# 触发面刻意收窄到 index.json 一个文件：改 README / 校验器不需要 purge，
+# 只会白白消耗 purge 配额。
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "index.json"
+  # 失败后的人工补救入口：Actions 里手动跑一次本工作流。
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+# 不要 cancel-in-progress：purge 必须真的打完，取消等于没打。
+concurrency:
+  group: purge-jsdelivr
+  cancel-in-progress: false
+
+jobs:
+  purge:
+    name: Purge jsDelivr index cache
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    env:
+      # 被缓存的资源，以及对应的 purge 端点。
+      TARGET: https://cdn.jsdelivr.net/gh/PyTs1n9/Qing-Notepad-Plugins@main/index.json
+      PURGE: https://purge.jsdelivr.net/gh/PyTs1n9/Qing-Notepad-Plugins@main/index.json
+    steps:
+      # ---- purge 之前 ------------------------------------------------------
+      # 留一份"打之前 CDN 上是什么"的现场，事后才能判断 purge 是否真的生效。
+      - name: Purge 前 — 读 CDN 上的 index.json
+        run: |
+          echo "== purge 前 =="
+          echo "URL: $TARGET"
+          curl -sS --max-time 30 "$TARGET" > /tmp/before.json 2>/tmp/before.err || true
+          echo "体量: $(wc -c < /tmp/before.json) 字节"
+          upd=$(grep -o '"updatedAt"[[:space:]]*:[[:space:]]*"[^"]*"' /tmp/before.json | head -1)
+          echo "updatedAt: ${upd:-'(未取到)'}"
+          dl=$(grep -o '"download"[[:space:]]*:[[:space:]]*"[^"]*' /tmp/before.json | head -1)
+          echo "download 前缀: ${dl:-'(未取到)'}"
+
+      # ---- 真正的 purge ----------------------------------------------------
+      # 成功判据（两条都满足才算成功）：
+      #   1. 返回体里 status == "finished"
+      #   2. 没有 throttled: true
+      # 拿不到 finished、或出现 throttled —— 一律算失败，最多重试 2 次（共 3 次尝试），
+      # 仍然失败就让 job 红掉。故意不加 continue-on-error：红了才有人看，这正是要的信号。
+      - name: Purge jsDelivr 缓存
+        run: |
+          set -u
+          ok=0
+          for attempt in 1 2 3; do
+            echo "::group::purge 尝试 $attempt/3（最多 2 次重试）"
+            echo "URL: $PURGE"
+            body="$(curl -sS --max-time 30 "$PURGE" 2>&1)" || body="(curl 失败) $body"
+            echo "返回体: $body"
+
+            if echo "$body" | grep -Eq '"status"[[:space:]]*:[[:space:]]*"finished"'; then
+              if echo "$body" | grep -Eq '"throttled"[[:space:]]*:[[:space:]]*true'; then
+                echo "::error::purge 被限流（throttled: true），内容可能仍是旧的，视为本次失败"
+              else
+                echo "purge 成功：status=finished 且未被限流"
+                ok=1
+                echo "::endgroup::"
+                break
+              fi
+            else
+              echo "::error::返回体里没有 status=finished，视为本次失败"
+            fi
+            echo "::endgroup::"
+            if [ "$attempt" -lt 3 ]; then
+              echo "等待 10 秒后重试…"
+              sleep 10
+            fi
+          done
+
+          if [ "$ok" -ne 1 ]; then
+            echo "::error::purge 未成功（3 次尝试均失败）。jsDelivr 上的 index.json 仍是旧的，客户端会拿到旧的 download/version/sha256 —— 需要人工介入：手动打开 $PURGE 并核对返回体，详见 CONTRIBUTING「合并后必做」。"
+            exit 1
+          fi
+
+      # ---- purge 之后 ------------------------------------------------------
+      # 只做诊断、不判成败：purge 刚返回 finished 时，个别边缘节点仍可能吐旧内容，
+      # 把它做成断言只会得到偶发的假红。但要**显式标红给人看**——实测出现过
+      # "purge 返回 finished 之后反而拿到更旧内容"的情况（边缘节点非原子），
+      # 这正是"列表能看、装不上"的成因，不能只写进日志里。
+      - name: Purge 后 — 再读一次 CDN 上的 index.json
+        run: |
+          echo "== purge 后 =="
+          echo "URL: $TARGET"
+          curl -sS --max-time 30 "$TARGET" > /tmp/after.json 2>/tmp/after.err || true
+          echo "体量: $(wc -c < /tmp/after.json) 字节"
+          upd=$(grep -o '"updatedAt"[[:space:]]*:[[:space:]]*"[^"]*"' /tmp/after.json | head -1)
+          echo "updatedAt: ${upd:-'(未取到)'}"
+          dl=$(grep -o '"download"[[:space:]]*:[[:space:]]*"[^"]*' /tmp/after.json | head -1)
+          echo "download 前缀: ${dl:-'(未取到)'}"
+
+          if cmp -s /tmp/before.json /tmp/after.json; then
+            echo "purge 前后内容一致。"
+          else
+            echo "purge 前后内容有差异，详见上方两段输出。"
+          fi
+
+          # 与 GitHub 上的 index.json 对照：这才是"客户端能不能装上"的判据。
+          # 只告警不判红，避免边缘节点短时间内的旧副本把 job 变成假红。
+          curl -sS --max-time 30 -H "Accept: application/vnd.github.raw" \
+            "https://api.github.com/repos/PyTs1n9/Qing-Notepad-Plugins/contents/index.json?ref=main" \
+            > /tmp/gh.json 2>/tmp/gh.err || true
+          if [ -s /tmp/gh.json ] && cmp -s /tmp/gh.json /tmp/after.json; then
+            echo "校验：CDN 内容与 GitHub main 一致，purge 已生效。"
+          else
+            echo "::warning::CDN 上的 index.json 与 GitHub main 不一致 —— purge 未生效或边缘节点仍在吐旧副本。若几十秒后仍如此，需要人工再 purge 一次；这会让「raw 不可达」的用户拿到旧 download 地址（列表能看、装不上）。"
+          fi
