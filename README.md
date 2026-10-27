@@ -139,11 +139,17 @@ sha256 → 装 → 授权 → 跑命令）在真机上通得了：
 - 为什么用 jsDelivr 而不是 `raw.githubusercontent.com`：**raw 在部分地区不可达**，
   应用内的 `reqwest` 会报 `error sending request for url (...)`，结果是"列表能看、
   点安装却装不上"——比不显示更糟。jsDelivr 有 CDN 兜底，索引本身也正是靠它加载出来的。
-- 正式插件**必须**把包挂在自己的 GitHub Release 上（固定 tag），索引仓库只存 `index.json`。
-- jsDelivr 的 `@main` **同样是可变引用**，只适合自举示例。重新打包示例包会让 `sha256`
-  失配——所以校验器对这 4 条给出 `download.mutable` 警告（警告不阻断 CI），
-  同时覆盖 `raw.githubusercontent.com/.../main` 与 `cdn.jsdelivr.net/gh/...@main`
-  两种形态，提醒维护者改包时同步改哈希。
+- jsDelivr 的 `@main` **不仅是可变引用，还是"粘滞引用"**，两件事都要记住：
+  1. **可变**——重新打包示例包会让 `sha256` 失配。所以校验器对这 4 条给出
+     `download.mutable` 警告（警告不阻断 CI），同时覆盖
+     `raw.githubusercontent.com/.../main` 与 `cdn.jsdelivr.net/gh/...@main` 两种形态，
+     提醒维护者改包时同步改哈希。
+  2. **粘滞**——推了新内容不会立刻可见，要等 purge 或 CDN TTL 才生效。
+     所以**每次合并 `index.json` 后都必须 purge jsDelivr 缓存**，
+     见 [CONTRIBUTING 的必做步骤](./CONTRIBUTING.md#三review-流程)。
+- 这两点合起来，正是正式插件**必须**把包挂在自己 Release 固定 tag 上的原因：
+  **tag 不变、字节不变，就不存在缓存漂移**，客户端校验的 `sha256` 永远对得上。
+  索引仓库只存 `index.json`，`@main` 的 jsDelivr 地址只适合自举示例。
 
 源码在 [Qing-Notepad/examples](https://github.com/PyTs1n9/Qing-Notepad/tree/main/examples)。
 
