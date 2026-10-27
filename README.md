@@ -132,25 +132,24 @@ sha256 → 装 → 授权 → 跑命令）在真机上通得了：
 | `qing.isolation-probe-1.0.0.qnp` | `qing.isolation-probe` |
 | `qing.wordcount-ts-1.0.0.qnp` | `qing.wordcount-ts` |
 
-它们的 `download` 指向本仓库 `main` 分支的 **jsDelivr** 地址
-（`https://cdn.jsdelivr.net/gh/PyTs1n9/Qing-Notepad-Plugins@main/examples/<file>`），
-是**故意的例外**：
+它们的 `download` 指向本仓库的 **jsDelivr + commit SHA** 地址
+（`https://cdn.jsdelivr.net/gh/PyTs1n9/Qing-Notepad-Plugins@<commit-sha>/examples/<file>`），
+是**故意的例外**——例外在"包放在索引仓库里"，不在"引用是可变的"：
 
 - 为什么用 jsDelivr 而不是 `raw.githubusercontent.com`：**raw 在部分地区不可达**，
   应用内的 `reqwest` 会报 `error sending request for url (...)`，结果是"列表能看、
-  点安装却装不上"——比不显示更糟。jsDelivr 有 CDN 兜底，索引本身也正是靠它加载出来的。
-- jsDelivr 的 `@main` **不仅是可变引用，还是"粘滞引用"**，两件事都要记住：
-  1. **可变**——重新打包示例包会让 `sha256` 失配。所以校验器对这 4 条给出
-     `download.mutable` 警告（警告不阻断 CI），同时覆盖
-     `raw.githubusercontent.com/.../main` 与 `cdn.jsdelivr.net/gh/...@main` 两种形态，
-     提醒维护者改包时同步改哈希。
-  2. **粘滞**——推了新内容不会立刻可见，要等 purge 或 CDN TTL 才生效。
-     所以**每次合并 `index.json` 后都要 purge jsDelivr 缓存**；这一步由 CI 自动做
-     （`.github/workflows/purge-jsdelivr.yml`），失败才人工补，见
-     [CONTRIBUTING 的说明](./CONTRIBUTING.md#三review-流程)。
-- 这两点合起来，正是正式插件**必须**把包挂在自己 Release 固定 tag 上的原因：
-  **tag 不变、字节不变，就不存在缓存漂移**，客户端校验的 `sha256` 永远对得上。
-  索引仓库只存 `index.json`，`@main` 的 jsDelivr 地址只适合自举示例。
+  点安装却装不上"——比不显示更糟。jsDelivr 有 CDN 兜底。
+- 为什么钉 **commit SHA** 而不是 `@main`：SHA 不可变，包的字节永远对得上 `sha256`，
+  不存在缓存漂移。`@main` 不仅是可变引用，还是"粘滞引用"——推了新内容要等 purge
+  或 CDN TTL 才可见。所以 `download` 一律钉到**包含该包字节的那个提交**（写全 40 位）。
+- **重打包 = 两处一起改**：`sha256` 与 URL 里的 commit SHA。漏改任意一处，客户端会用
+  `E_SHA256_MISMATCH` 拒装——故意 fail closed，不是 bug。
+- 剩下唯一还走 `@main` 的是 `index.json` 本身（客户端的兜底 URL 写死了它）：
+  推了新索引要 purge jsDelivr 缓存才生效，这一步由 CI 自动做
+  （`.github/workflows/purge-jsdelivr.yml`），失败才人工补，见
+  [CONTRIBUTING 的说明](./CONTRIBUTING.md#三review-流程)。
+- 正式插件仍然**必须**把包挂在自己 Release 的固定 tag 上，索引仓库只存 `index.json`；
+  `examples/` 是唯一放包的地方，只为自证链路（拉索引 → 下载 → 校验 sha256 → 装 → 跑）。
 
 源码在 [Qing-Notepad/examples](https://github.com/PyTs1n9/Qing-Notepad/tree/main/examples)。
 
@@ -171,7 +170,7 @@ node scripts/validate-index.mjs path/to/other-index.json   # 校验别处的索�
   条目数        4
   规则检查次数   195
   id            qing.hello-headless, qing.note-wordcount, ...
-  结果          0 个错误 / 4 个警告
+  结果          0 个错误 / 0 个警告
 ```
 
 退出码：有错误 → `1`，只有警告或全通过 → `0`。未知的多余字段只产生警告，
@@ -190,7 +189,7 @@ node scripts/validate-index.mjs path/to/other-index.json   # 校验别处的索�
 | `sha256.artifact` | 重新打包了但没改哈希 | 重新算，或把包改回原样 |
 | `download.https` | 用了 `http://` 或相对路径 | 换成 `https://` 的 Release 地址 |
 | `download.suffix` | 地址不以 `.zip` / `.qnp` 结尾 | 上传 zip 产物；不要指向 `.tar.gz` |
-| `download.mutable` | 指向可变引用：`raw.githubusercontent.com/.../main`、`cdn.jsdelivr.net/gh/...@main`，或未固定版本的 jsDelivr 地址（**警告**） | 换成自己 Release 固定 tag 的直链；自举示例可忽略 |
+| `download.mutable` | 指向可变引用：`raw.githubusercontent.com/.../main`、`cdn.jsdelivr.net/gh/...@main`，或未固定版本的 jsDelivr 地址（**警告**） | 换成 Release 固定 tag 或 commit SHA 的直链。本仓库 4 个自举示例已钉 commit SHA，不会再触发 |
 | `permissions.known` | 权限名写错（如 `note:read`、`telnet`） | 从白名单里选，注意 `notes:` 是复数 |
 | `engines.host.range` | 区间写法不对（`latest`、`>=v0.7.3`） | 用 `>=0.7.3 <1.0.0` |
 | `engines.host.overlap` | 要求 `>=2.0.0` 之类，现有客户端都装不上（警告） | 放宽下界，或等宿主发版 |

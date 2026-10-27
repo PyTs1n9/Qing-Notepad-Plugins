@@ -1,6 +1,6 @@
 {
   "schema": 1,
-  "updatedAt": "2026-10-27T06:45:52Z",
+  "updatedAt": "2026-10-27T08:05:49Z",
   "plugins": [
     {
       "id": "qing.hello-headless",
@@ -11,7 +11,7 @@
       "version": "1.0.0",
       "apiVersion": 1,
       "engines": { "host": ">=0.7.3 <1.0.0" },
-      "download": "https://cdn.jsdelivr.net/gh/PyTs1n9/Qing-Notepad-Plugins@main/examples/qing.hello-headless-1.0.0.qnp",
+      "download": "https://cdn.jsdelivr.net/gh/PyTs1n9/Qing-Notepad-Plugins@94e30d07662719b9ec8af9ec5cdb60e20d43fc76/examples/qing.hello-headless-1.0.0.qnp",
       "sha256": "8911d8370b8f300964cf0c534696878bdd6dcbba8d2241ed62ad9ab78964c859",
       "permissions": ["clipboard:write", "notify"],
       "updatedAt": "2026-10-27T06:45:52Z"
@@ -25,7 +25,7 @@
       "version": "1.0.0",
       "apiVersion": 1,
       "engines": { "host": ">=0.7.3 <1.0.0" },
-      "download": "https://cdn.jsdelivr.net/gh/PyTs1n9/Qing-Notepad-Plugins@main/examples/qing.note-wordcount-1.0.0.qnp",
+      "download": "https://cdn.jsdelivr.net/gh/PyTs1n9/Qing-Notepad-Plugins@94e30d07662719b9ec8af9ec5cdb60e20d43fc76/examples/qing.note-wordcount-1.0.0.qnp",
       "sha256": "d98e8bcc969b28e5c28d8d8b7cdddd8f76cfc0d2e577dc38c5e0e826d5fb23e8",
       "permissions": ["notes:read", "notify"],
       "updatedAt": "2026-10-27T06:45:52Z"
@@ -39,7 +39,7 @@
       "version": "1.0.0",
       "apiVersion": 1,
       "engines": { "host": ">=0.7.3 <1.0.0" },
-      "download": "https://cdn.jsdelivr.net/gh/PyTs1n9/Qing-Notepad-Plugins@main/examples/qing.isolation-probe-1.0.0.qnp",
+      "download": "https://cdn.jsdelivr.net/gh/PyTs1n9/Qing-Notepad-Plugins@94e30d07662719b9ec8af9ec5cdb60e20d43fc76/examples/qing.isolation-probe-1.0.0.qnp",
       "sha256": "9813ca8ca9fc4678ef5c92add78fa16c58cc8233cca478c16be080886e981a9a",
       "permissions": ["notify"],
       "updatedAt": "2026-10-27T06:45:52Z"
@@ -53,7 +53,7 @@
       "version": "1.0.0",
       "apiVersion": 1,
       "engines": { "host": ">=0.7.3 <1.0.0" },
-      "download": "https://cdn.jsdelivr.net/gh/PyTs1n9/Qing-Notepad-Plugins@main/examples/qing.wordcount-ts-1.0.0.qnp",
+      "download": "https://cdn.jsdelivr.net/gh/PyTs1n9/Qing-Notepad-Plugins@94e30d07662719b9ec8af9ec5cdb60e20d43fc76/examples/qing.wordcount-ts-1.0.0.qnp",
       "sha256": "90e11fdee74b25f00a894e2338c2238090268a188184f861f3e2d0a16baa0c90",
       "permissions": ["notes:read", "notify"],
       "updatedAt": "2026-10-27T06:45:52Z"

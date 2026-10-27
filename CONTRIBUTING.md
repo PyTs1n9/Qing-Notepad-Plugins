@@ -34,11 +34,15 @@ review 标准比一般文档仓库严：一条坏条目等于所有用户的市�
    客户端靠 `version` 判断是否有更新。
 5. **`sha256` 必须与 `download` 的真实字节一致。** 发布前请在干净目录重新下载一次
    并重算哈希（`Get-FileHash` 的结果要转小写）。这是唯一防篡改/防损坏的凭据。
-6. **`download` 必须指向你自己 GitHub Release 上的固定 tag。**
+6. **`download` 必须指向不可变的地址。**
+   - 正式插件：你自己 GitHub Release 的固定 tag。
+   - 本仓库 `examples/` 下的自举示例：`cdn.jsdelivr.net/gh/...@<commit-sha>/...`，
+     SHA 写全 40 位，且必须是**包含该包字节的那个提交**（`git rev-parse <提交>`）。
    - 不要用 `main`/`master` 的 raw 地址，也不要用 `cdn.jsdelivr.net/gh/...@main`
      这类 jsDelivr 可变引用（内容可变，哈希必然漂移）。
-   - 不要用第三方网盘、短链、会过期的签名 URL。
-   - 不要提交 `http://`。
+   - 不要用第三方网盘、短链、会过期的签名 URL。不要提交 `http://`。
+   - **重打包 = 两处一起改**：`sha256` 与 URL 里的 commit SHA。漏改任意一处，
+     客户端会用 `E_SHA256_MISMATCH` 把包拒装——这是故意的 fail closed，不是 bug。
 7. **包里必须能装上。** 请在真机上实际装一次：`plugin.json` 或 `package.json`
    能被解析、`main` 指向包内路径、声明的权限都在白名单里。
    索引登记的信息必须与包内清单一致（`id` / `version` / `permissions` / `engines`）——
@@ -104,10 +108,25 @@ https://purge.jsdelivr.net/gh/PyTs1n9/Qing-Notepad-Plugins@main/examples/<file>
 正常情况下包不该重打包（sha256 会变，`index.json` 也得跟着改），所以需要 purge 的
 永远是 `index.json` 这一条。
 
+**purge 有配额，别拿脚本连打。** jsDelivr 的 purge 接口会限流，而且**限流期间它照样
+返回 `status: "finished"`**，只是多带一个 `"throttled": true`：
+
+1. **测试脚本不要连打 purge。** 真出过事故：连续调用十几次之后，第一次（未限流的那次）
+   把好的缓存副本删掉、回源拿到的是更旧的副本，后面全被限流刷不动，线上反而变成旧索引。
+2. **判断成功要两个字段一起看**：`status == "finished"` **且** 没有 `throttled: true`。
+   只看 `finished` 会把"被限流"当成"刷好了"，这正是最坑的一类假象。
+3. 被限流时返回体里有 `throttlingReset`（秒数），等窗口过了再试；连续失败不要无限重试，
+   网络或配额问题需要人判断。CI 里也是这个判据，最多重试 2 次就红给人看。
+
 ## 四、版本与撤回
 
-- **升版本**：改 `version` + `download` + `sha256` + `updatedAt`，四者同一次提交内改齐。
+- **升版本**：改 `version` + `download` + `sha256` + `updatedAt`，同一次提交内改齐。
   漏改任一项都会被 `sha256.artifact` 或 `download.mutable` 拦下。
+- **重打包自举示例**（`examples/` 下那几个包）：`download` 里的 commit SHA 指向的是
+  "包含该包字节的那个提交"，所以只能分两步做，顺序不能反：
+  1. 换包 → 提交（此时新 commit SHA 才存在）
+  2. 用**新提交的 40 位 SHA** 改 `download`，同时重算 `sha256`，再提交
+  只改哈希不改 URL 里的 SHA、或反过来，都会被 `E_SHA256_MISMATCH` 拒装（fail closed）。
 - **撤回**（包有安全问题，必须立刻下架）：开 PR 删除该条目，标题 `chore(index): 下架 <id>`，
   描述里写清"为什么必须立刻下架"。这类 PR 优先合并，不必等常规 review 周期。
 - 撤回后**不要**把同一个 `version` 重新上架：用户本地那份不会被替换。请直接发新版本号。
