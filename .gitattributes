@@ -1,0 +1,13 @@
+# 归一化换行，避免 Windows 上 `crlf` 把 index.json 改得面目全非。
+* text=auto eol=lf
+
+# 包是二进制。绝不能做换行转换或 diff 文本化，否则 sha256 会变。
+*.qnp binary
+*.zip binary
+
+# 索引必须是 LF，且不能带 BOM（客户端 serde_json 会拒）。
+index.json text eol=lf
+*.json  text eol=lf
+*.md    text eol=lf
+*.mjs   text eol=lf
+*.yml   text eol=lf

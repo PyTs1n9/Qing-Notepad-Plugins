@@ -1,0 +1,55 @@
+name: validate-index
+
+# 索引就是线上数据：`main` 上的 index.json 被客户端直接消费。
+# push 与 PR 都跑同一个校验器，保证"能在 CI 过"和"能在本地过"是同一件事。
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "index.json"
+      - "scripts/**"
+      - "examples/**"
+      - "package.json"
+      - ".github/workflows/validate.yml"
+  pull_request:
+    paths:
+      - "index.json"
+      - "scripts/**"
+      - "examples/**"
+      - "package.json"
+      - ".github/workflows/validate.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: validate-index-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  validate:
+    name: 校验 index.json
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      # 校验器零依赖，故意不跑 `npm install` / `npm ci`：
+      # 少一个网络环节，PR 就不会因为 npm registry 抖动而变红。
+      - name: Validate
+        run: npm run validate
+
+      - name: Check no BOM
+        run: |
+          if [ "$(head -c 3 index.json | od -An -tx1 | tr -d ' \n')" = "efbbbf" ]; then
+            echo "::error file=index.json::index.json 带 UTF-8 BOM，客户端 serde_json 会解析失败"
+            exit 1
+          fi

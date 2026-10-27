@@ -1,0 +1,62 @@
+{
+  "schema": 1,
+  "updatedAt": "2026-10-27T06:45:52Z",
+  "plugins": [
+    {
+      "id": "qing.hello-headless",
+      "name": "时间戳剪贴板",
+      "description": "把当前时间戳写进剪贴板，用来验证「安装 → 授权 → 命令面板 → 权限拒绝」整条链路。",
+      "author": "Qing Notepad",
+      "repo": "https://github.com/PyTs1n9/Qing-Notepad/tree/main/examples/qing-hello-headless",
+      "version": "1.0.0",
+      "apiVersion": 1,
+      "engines": { "host": ">=0.7.3 <1.0.0" },
+      "download": "https://raw.githubusercontent.com/PyTs1n9/Qing-Notepad-Plugins/main/examples/qing.hello-headless-1.0.0.qnp",
+      "sha256": "8911d8370b8f300964cf0c534696878bdd6dcbba8d2241ed62ad9ab78964c859",
+      "permissions": ["clipboard:write", "notify"],
+      "updatedAt": "2026-10-27T06:45:52Z"
+    },
+    {
+      "id": "qing.note-wordcount",
+      "name": "笔记字数统计",
+      "description": "统计笔记字数并用提示消息报告，用来验证 notes:read 权限与跨线程读取。",
+      "author": "Qing Notepad",
+      "repo": "https://github.com/PyTs1n9/Qing-Notepad/tree/main/examples/qing-note-wordcount",
+      "version": "1.0.0",
+      "apiVersion": 1,
+      "engines": { "host": ">=0.7.3 <1.0.0" },
+      "download": "https://raw.githubusercontent.com/PyTs1n9/Qing-Notepad-Plugins/main/examples/qing.note-wordcount-1.0.0.qnp",
+      "sha256": "d98e8bcc969b28e5c28d8d8b7cdddd8f76cfc0d2e577dc38c5e0e826d5fb23e8",
+      "permissions": ["notes:read", "notify"],
+      "updatedAt": "2026-10-27T06:45:52Z"
+    },
+    {
+      "id": "qing.isolation-probe",
+      "name": "隔离自检",
+      "description": "在真实 Worker 里检查 window / document / Tauri IPC / 网络四条隔离前提，结果用提示消息报告。",
+      "author": "Qing Notepad",
+      "repo": "https://github.com/PyTs1n9/Qing-Notepad/tree/main/examples/qing-isolation-probe",
+      "version": "1.0.0",
+      "apiVersion": 1,
+      "engines": { "host": ">=0.7.3 <1.0.0" },
+      "download": "https://raw.githubusercontent.com/PyTs1n9/Qing-Notepad-Plugins/main/examples/qing.isolation-probe-1.0.0.qnp",
+      "sha256": "9813ca8ca9fc4678ef5c92add78fa16c58cc8233cca478c16be080886e981a9a",
+      "permissions": ["notify"],
+      "updatedAt": "2026-10-27T06:45:52Z"
+    },
+    {
+      "id": "qing.wordcount-ts",
+      "name": "笔记字数统计（TypeScript）",
+      "description": "用 package.json 声明、TypeScript 编写的插件示例：统计全库字数并用提示消息报告。",
+      "author": "Qing Notepad",
+      "repo": "https://github.com/PyTs1n9/Qing-Notepad/tree/main/examples/qing-wordcount-ts",
+      "version": "1.0.0",
+      "apiVersion": 1,
+      "engines": { "host": ">=0.7.3 <1.0.0" },
+      "download": "https://raw.githubusercontent.com/PyTs1n9/Qing-Notepad-Plugins/main/examples/qing.wordcount-ts-1.0.0.qnp",
+      "sha256": "90e11fdee74b25f00a894e2338c2238090268a188184f861f3e2d0a16baa0c90",
+      "permissions": ["notes:read", "notify"],
+      "updatedAt": "2026-10-27T06:45:52Z"
+    }
+  ]
+}

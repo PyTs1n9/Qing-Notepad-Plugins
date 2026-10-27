@@ -1,0 +1,10 @@
+# 校验器零依赖，正常不会有 node_modules；防止手滑提交。
+node_modules/
+package-lock.json
+
+# 本地临时目录 / 校验输出
+.tmp/
+.tmp-*/
+*.log
+.DS_Store
+Thumbs.db
