@@ -1,6 +1,6 @@
 {
   "schema": 1,
-  "updatedAt": "2026-10-28T12:29:46Z",
+  "updatedAt": "2026-10-28T15:15:41Z",
   "plugins": [
     {
       "id": "qing.hello-headless",
@@ -64,13 +64,13 @@
       "description": "把常用段落存成片段，一条命令插入光标处；支持日期、时间、光标、选区四个占位符。",
       "author": "Qing Notepad",
       "repo": "https://github.com/PyTs1n9/Qing-Notepad/tree/main/examples/qing-snippet",
-      "version": "1.0.0",
+      "version": "1.0.1",
       "apiVersion": 1,
       "engines": { "host": ">=0.7.3 <1.0.0" },
-      "download": "https://cdn.jsdelivr.net/gh/PyTs1n9/Qing-Notepad-Plugins@81e13dc76ba95d88ca6f04087d1bfcd24e545bf5/examples/qing.snippet-1.0.0.qnp",
-      "sha256": "4679e7f88fae854304ed11afc6eaab76d84221cd369662855ff9e7277e2db60e",
-      "permissions": ["storage", "views", "editor:read", "editor:write", "editor:selection"],
-      "updatedAt": "2026-10-28T12:29:46Z"
+      "download": "https://cdn.jsdelivr.net/gh/PyTs1n9/Qing-Notepad-Plugins@4a53167f4a71553b9dfd96731f69d658fce01c00/examples/qing.snippet-1.0.1.qnp",
+      "sha256": "352660eb667fee004f0a769958037d2d14a8c6ea8a322560dc3f582f903a4a84",
+      "permissions": ["storage", "views", "notify", "editor:read", "editor:write", "editor:selection"],
+      "updatedAt": "2026-10-28T15:15:41Z"
     }
   ]
 }
