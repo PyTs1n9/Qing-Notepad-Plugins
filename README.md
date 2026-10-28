@@ -48,7 +48,8 @@
 | `name` | ✅ | string | 非空，≤ 96 字节。展示名，可以中文 |
 | `description` | ✅ | string | 非空。一句话说清"这个插件解决什么问题" |
 | `author` | ✅ | string | 非空。写成**字符串**（对象写法客户端也收，但本索引统一要求字符串） |
-| `repo` | 建议 | string | `https://` 源码地址，指向 GitHub 仓库页面而不是 raw 文件 |
+| `repo` | 建议 | string | `https://` 源码地址，指向 GitHub 的仓库/目录页面而不是 raw 文件。客户端详情页第一行 |
+| `repoGitee` | 可省 | string | `repo` 在 Gitee 上的同一路径，客户端详情页第二行。缺省时只显示 `repo` 一条 |
 | `version` | ✅ | string | **严格 semver** `x.y.z`，可带 `-prerelease` / `+build`。不接受 `v` 前缀、不接受前导零（`1.00.0` 非法）、必须三段 |
 | `apiVersion` | 可省 | 整数 | 省略视为 `1`；写了就必须是 `1` |
 | `engines.host` | ✅ | string | 宿主版本区间，必须能被解析（见下）。建议统一写 `">=0.7.3 <1.0.0"` |
@@ -157,7 +158,8 @@ sha256 → 装 → 授权 → 跑命令）在真机上通得了：
 - 正式插件仍然**必须**把包挂在自己 Release 的固定 tag 上，索引仓库只存 `index.json`；
   `examples/` 是唯一放包的地方，只为自证链路（拉索引 → 下载 → 校验 sha256 → 装 → 跑）。
 
-源码在 [Qing-Notepad/examples](https://github.com/PyTs1n9/Qing-Notepad/tree/main/examples)。
+源码在本仓库的 [`examples/`](./examples)：每个插件一个目录（`examples/qing-snippet/` 对应
+`qing.snippet`），旁边并列放该版本打包好的 `.qnp`。主软件仓库 `Qing-Notepad` 不再保存示例源码。
 
 ## 本地开发
 

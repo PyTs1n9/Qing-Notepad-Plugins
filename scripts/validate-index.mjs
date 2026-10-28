@@ -87,6 +87,7 @@ const KNOWN_ENTRY_KEYS = new Set([
   "description",
   "author",
   "repo",
+  "repoGitee",
   "version",
   "apiVersion",
   "engines",
