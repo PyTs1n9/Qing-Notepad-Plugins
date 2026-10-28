@@ -49,7 +49,13 @@ const MAX_NUMERIC_PART_DIGITS = 10;
 /** 当前宿主版本线；用于判断“这个包在现有客户端上能不能装”。 */
 const HOST_BASELINE_RANGE = ">=0.7.3 <1.0.0";
 
-/** `plugin_manifest.rs::KNOWN_PERMISSIONS` 的完整白名单。 */
+/**
+ * `plugin_manifest.rs::KNOWN_PERMISSIONS` 的完整白名单（13 项，与客户端逐字一致）。
+ *
+ * P1a / P1a-2 加入编辑器面板后，客户端从 8 个码扩到 13 个，这里曾落后于客户端：
+ * 结果是任何用 `editor:*` 或 `views` 的插件都能装上、却过不了本校验器，
+ * 于是永远上不了架（`qing.outline` 就是卡在这一步）。改客户端必须同步改这里。
+ */
 const KNOWN_PERMISSIONS = [
   "storage",
   "notes:read",
@@ -59,6 +65,11 @@ const KNOWN_PERMISSIONS = [
   "clipboard:read",
   "clipboard:write",
   "notify",
+  "editor:read",
+  "editor:write",
+  "editor:decorate",
+  "views",
+  "editor:selection",
 ];
 
 /**
