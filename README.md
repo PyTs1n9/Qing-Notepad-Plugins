@@ -1,7 +1,7 @@
 # 青记插件索引（Qing Notepad Plugins）
 
 青记（Qing Notepad）的插件市场**只读这一个文件**：[`index.json`](./index.json)。
-这个仓库是它的唯一登记处——包含一份索引、一个零依赖校验器，和 4 个自举示例包。
+这个仓库是它的唯一登记处——包含一份索引、一个零依赖校验器，和 5 个自举示例包。
 
 > 插件作者请读：[字段表](#字段表) → [sha256 怎么算](#sha256-怎么算) → [提交步骤](#提交步骤) → [被拒的常见原因](#被拒的常见原因)。
 > 提 PR 之前请先读 [`CONTRIBUTING.md`](./CONTRIBUTING.md)。
@@ -60,9 +60,14 @@
 `permissions` 白名单（与客户端的 `KNOWN_PERMISSIONS` 逐字一致，写错会 `E_PERMISSION_UNKNOWN`）：
 
 ```
-storage   notes:read   notes:write   todo:read
-todo:write   clipboard:read   clipboard:write   notify
+storage      notes:read    notes:write    todo:read
+todo:write   clipboard:read  clipboard:write  notify
+editor:read  editor:write  editor:decorate  views  editor:selection
 ```
+
+`editor:read` 管的是**当前打开的那篇**，`notes:read` 管的是整个笔记库——两者是不同量的信任，
+客户端也分开授权。`editor:decorate` 与 `editor:write`、`views` 与 `editor:selection` 同理，
+互不蕴含。
 
 `engines.host` 支持的区间写法：空格分隔表示"且"（`>=0.7.3 <1.0.0`），`||` 表示"或"，
 运算符接受 `>=` `>` `<=` `<` `=` `^` `~`，版本可以是部分版本或通配符（`1.2.x` / `1.x` / `*`）。
@@ -120,9 +125,9 @@ CI 会对每个 PR 跑同一个校验器（`.github/workflows/validate.yml`）�
    由维护者处理。
 6. 索引里**只放元数据**，不放包本体（`examples/` 是唯一的例外，见下）。
 
-## 关于 `examples/` 里的 4 个包
+## 关于 `examples/` 里的 5 个包
 
-`examples/` 下这 4 个包是**自举示例**，用来证明整条链路（拉索引 → 下载 → 校验
+`examples/` 下这 5 个包是**自举示例**，用来证明整条链路（拉索引 → 下载 → 校验
 sha256 → 装 → 授权 → 跑命令）在真机上通得了：
 
 | 文件 | id |
@@ -131,6 +136,7 @@ sha256 → 装 → 授权 → 跑命令）在真机上通得了：
 | `qing.note-wordcount-1.0.0.qnp` | `qing.note-wordcount` |
 | `qing.isolation-probe-1.0.0.qnp` | `qing.isolation-probe` |
 | `qing.wordcount-ts-1.0.0.qnp` | `qing.wordcount-ts` |
+| `qing.snippet-1.0.0.qnp` | `qing.snippet` |
 
 它们的 `download` 指向本仓库的 **jsDelivr + commit SHA** 地址
 （`https://cdn.jsdelivr.net/gh/PyTs1n9/Qing-Notepad-Plugins@<commit-sha>/examples/<file>`），
